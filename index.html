@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时代峰峻 · 拆卡模拟器</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #0b0b1a;
+            color: #eee;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: #14142b;
+            border-radius: 28px;
+            padding: 24px 20px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.8);
+            border: 1px solid #2a2a4a;
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f9d976, #f39c12);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2a2a4a;
+            padding-bottom: 12px;
+        }
+        /* 视图切换 */
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* 导航按钮 */
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .nav-bar button {
+            background: #2a2a4a;
+            border: none;
+            color: #ddd;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        .nav-bar button:hover {
+            background: #3a3a6a;
+            border-color: #f1c40f;
+        }
+        .nav-bar button.active-nav {
+            background: #e94560;
+            color: #fff;
+            border-color: #e94560;
+        }
+
+        /* 统计 */
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            justify-content: center;
+            background: #1e1e3a;
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        .stats span {
+            background: #0b0b1a;
+            padding: 4px 14px;
+            border-radius: 30px;
+            border: 1px solid #3a3a5a;
+        }
+        .stats .count { color: #f1c40f; font-weight: bold; }
+
+        .group-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f1c40f;
+            margin: 18px 0 10px 0;
+            border-left: 4px solid #f1c40f;
+            padding-left: 12px;
+        }
+        .member-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .member-btn, .random-btn {
+            background: #232345;
+            border: none;
+            color: #ddd;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        .member-btn:hover, .random-btn:hover {
+            background: #3a3a6a;
+            border-color: #f1c40f;
+            transform: scale(1.03);
+        }
+        .member-btn:active, .random-btn:active { transform: scale(0.95); }
+        .random-btn {
+            background: #2a1f4a;
+            border-color: #8e44ad;
+            color: #e8d5ff;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .random-btn:hover { border-color: #bb8bf7; }
+
+        .draw-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .draw-header h2 {
+            color: #f1c40f;
+            font-size: 1.5rem;
+        }
+        .draw-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .draw-actions button {
+            background: #e94560;
+            color: #fff;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .draw-actions button:hover { background: #c73652; transform: scale(1.05); }
+        .draw-actions button:active { transform: scale(0.95); }
+        .back-btn {
+            background: #555 !important;
+            padding: 8px 18px !important;
+        }
+        .back-btn:hover { background: #777 !important; }
+
+        .result-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 20px;
+            min-height: 200px;
+        }
+        .result-card {
+            background: #1c1c38;
+            border-radius: 16px;
+            padding: 16px 12px 12px;
+            width: 220px;
+            text-align: center;
+            border: 3px solid #3a3a5a;
+            transition: 0.2s;
+            animation: pop 0.4s ease;
+            position: relative;
+        }
+        .result-card .card-image {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: #2a2a4a;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .result-card .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+        .result-card .card-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .result-card .congrats {
+            font-size: 0.85rem;
+            color: #ccc;
+            line-height: 1.4;
+        }
+        .result-card .rarity-tag {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+        .rarity-N { border-color: #b0b0b0; }
+        .rarity-N .rarity-tag { background: #b0b0b0; color: #000; }
+        .rarity-R { border-color: #64b5f6; }
+        .rarity-R .rarity-tag { background: #64b5f6; color: #000; }
+        .rarity-SR { border-color: #ce93d8; }
+        .rarity-SR .rarity-tag { background: #ce93d8; color: #000; }
+        .rarity-SSR { border-color: #ffb74d; }
+        .rarity-SSR .rarity-tag { background: #ffb74d; color: #000; }
+        .rarity-UR { border-color: #ef5350; }
+        .rarity-UR .rarity-tag { background: #ef5350; color: #fff; }
+        .rarity-SP { border-color: #ffd700; }
+        .rarity-SP .rarity-tag { background: #ffd700; color: #000; }
+        .rarity-hidden { border-color: #ff6b6b; background: #2a1a1a; }
+        .rarity-hidden .rarity-tag { background: #ff6b6b; color: #fff; }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .history {
+            margin-top: 20px;
+            max-height: 120px;
+            overflow-y: auto;
+            background: #0a0a18;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #888;
+            border: 1px solid #1e1e3a;
+        }
+        .history span {
+            display: inline-block;
+            margin: 2px 4px 2px 0;
+        }
+        .history .rarity-tag {
+            padding: 1px 8px;
+            border-radius: 12px;
+            background: #1a1a2e;
+        }
+        .clear-btn {
+            background: #3a2a2a;
+            border: none;
+            color: #ccc;
+            padding: 2px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            float: right;
+        }
+        .clear-btn:hover { background: #5a3a3a; }
+
+        /* 图鉴界面 */
+        .collection-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .collection-item {
+            background: #1c1c38;
+            border-radius: 12px;
+            padding: 8px;
+            width: 120px;
+            text-align: center;
+            border: 2px solid #3a3a5a;
+            position: relative;
+        }
+        .collection-item .card-image {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: #2a2a4a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .collection-item .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .collection-item .card-name {
+            font-size: 0.75rem;
+            font-weight: 500;
+            word-break: break-all;
+        }
+        .collection-item .count-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e94560;
+            color: #fff;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(233,69,96,0.6);
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0a0a18; }
+        ::-webkit-scrollbar-thumb { background: #3a3a6a; border-radius: 10px; }
+
+        @media (max-width: 600px) {
+            .container { padding: 16px 12px; }
+            h1 { font-size: 1.6rem; }
+            .result-card { width: 160px; padding: 10px; }
+            .result-card .card-name { font-size: 0.9rem; }
+            .result-card .congrats { font-size: 0.75rem; }
+            .draw-header h2 { font-size: 1.2rem; }
+            .collection-item { width: 90px; }
+        }
+        @media (max-width: 600px) {
+            .container { padding: 16px 12px; }
+            h1 { font-size: 1.6rem; }
+            .result-card { width: 160px; padding: 10px; }
+            .result-card .card-name { font-size: 0.9rem; }
+            .result-card .congrats { font-size: 0.75rem; }
+            .draw-header h2 { font-size: 1.2rem; }
+            .collection-item { width: 90px; }
+        }
+        /* 👇 在这里插入新增样式 */
+        /* 隐藏卡弹窗滚动条美化 */
+        #hiddenCardsContainer::-webkit-scrollbar { width: 5px; }
+        #hiddenCardsContainer::-webkit-scrollbar-track { background: #0a0a18; }
+        #hiddenCardsContainer::-webkit-scrollbar-thumb { background: #ffd700; border-radius: 10px; }
+
+        /* 弹窗里的卡片样式 */
+        #hiddenModal .modal-card {
+            background: #1c1c38;
+            border-radius: 12px;
+            padding: 10px;
+            width: 150px;
+            text-align: center;
+            border: 2px solid #ffd700;
+        }
+        #hiddenModal .modal-card .card-image {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: #2a2a4a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        #hiddenModal .modal-card .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        #hiddenModal .modal-card .card-name {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+/* 图片查看大图模态框 - 淡入动画 */
+#imageModal {
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+    </style>
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>✨ 时代峰峻 · 拆卡模拟器 ✨</h1>
+    <div class="subtitle">全卡池 · 双界面抽卡 · 收集图鉴</div>
+
+    <!-- 导航栏 -->
+    <div class="nav-bar">
+        <button id="navMain" class="active-nav" onclick="switchView('main')">🏠 主界面</button>
+        <button id="navCollection" onclick="switchView('collection')">📖 收集图鉴</button>
+    </div>
+
+    <!-- ============ 主界面 ============ -->
+    <div id="mainView" class="view active">
+        <!-- 统计 -->
+        <div class="stats" id="statsBar">
+            <span>📦 已拆: <span class="count" id="packCount">0</span> 包</span>
+            <span>💎 总卡数: <span class="count" id="totalCards">0</span></span>
+            <span>⭐ N: <span id="cntN">0</span></span>
+            <span>🔵 R: <span id="cntR">0</span></span>
+            <span>🟣 SR: <span id="cntSR">0</span></span>
+            <span>🟠 SSR: <span id="cntSSR">0</span></span>
+            <span>🔴 UR: <span id="cntUR">0</span></span>
+            <span>🟡 SP: <span id="cntSP">0</span></span>
+            <span>🌟 隐藏: <span id="cntHidden">0</span></span>
+        </div>
+
+        <!-- 卡池入口 -->
+        <div class="group-title">👥 TOP登陆少年 (单人池)</div>
+        <div class="member-buttons" id="topMembers"></div>
+
+        <div class="group-title">👥 登陆计划 (单人池)</div>
+        <div class="member-buttons" id="planMembers"></div>
+
+        <div class="group-title">👥 TF家族四代 (单人池)</div>
+        <div class="member-buttons" id="fourthMembers"></div>
+
+        <div class="group-title">🎲 随机卡池</div>
+        <div>
+            <button class="random-btn" data-pool="topRandom">🎲 TOP随机池</button>
+            <button class="random-btn" data-pool="planRandom">🎲 登陆计划随机池</button>
+            <button class="random-btn" data-pool="fourthRandom">🎲 TF家族随机池</button>
+        </div>
+
+        <!-- 历史记录 -->
+        <div class="history" id="historyBox">
+            <span style="color:#555;">操作记录将显示在这里</span>
+        </div>
+    </div>
+
+    <!-- ============ 抽卡界面 ============ -->
+    <div id="drawView" class="view">
+        <div class="draw-header">
+            <h2 id="drawTitle">抽卡</h2>
+            <div class="draw-actions">
+                <button class="back-btn" onclick="backToMain()">← 返回</button>
+                <button onclick="drawPack(1)">🎴 抽一张</button>
+                <button onclick="drawPack(5)">🎴 抽五张</button>
+            </div>
+        </div>
+        <div class="result-grid" id="resultGrid">
+            <div style="color:#666; padding:40px;">选择抽卡数量，开始抽取</div>
+        </div>
+    </div>
+
+    <!-- ============ 收集图鉴界面 ============ -->
+    <div id="collectionView" class="view">
+        <div class="draw-header">
+            <h2>📖 收集图鉴</h2>
+            <div class="draw-actions">
+                <button class="back-btn" onclick="backToMain()">← 返回</button>
+            </div>
+        </div>
+        <div id="collectionGrid" class="collection-grid">
+            <div style="color:#666; padding:40px; width:100%; text-align:center;">还没有抽到任何卡片，快去拆包吧！</div>
+        </div>
+    </div>
+
+    <div style="text-align:center; margin-top:12px; font-size:0.7rem; color:#555;">
+        💡 图片配置：修改 <code>getCardImageUrl</code> 函数 · 卡名修改：<code>generateCardPools</code>
+    </div>
+
+        <!-- 免责声明 -->
+        <div style="position:fixed; bottom:10px; right:15px; color:#666; font-size:12px; text-align:right; line-height:1.6; opacity:0.7; pointer-events:none; z-index:999;">
+            模拟抽卡，仅供娱乐<br>
+            图片源于网络，侵权可删，严禁商用
+        </div>
+</div>
+
+<script>
+    // ============================================================
+    //  1. 成员名单
+    // ============================================================
+    const GROUPS = {
+        top: ['朱志鑫', '苏新皓', '左航', '张泽禹', '张极'],
+        plan: ['余宇涵', '张峻豪', '童禹坤', '邓佳鑫', '穆祉丞', '张子墨', '黄朔'],
+        fourth: [
+            '官俊臣', '张桂源', '张函瑞', '王橹杰', '王烁然', '左奇函',
+            '陈奕恒', '杨博文', '杨涵博', '张奕然', '聂玮辰', '陈思罕',
+            '魏子宸', '李煜东', '陈浚铭'
+        ]
+    };
+
+    // ============================================================
+    //  2. 生成卡池数据（用户可在此修改卡名格式）
+    // ============================================================
+    function makeCardName(prefix, rarity, index, pad = 2) {
+        const num = String(index).padStart(pad, '0');
+        return `${prefix}-${rarity}-${num}`;
+    }
+
+    function generateCardPools() {
+        const pools = {};
+
+        // ----- TOP 随机池 -----
+        const topRandom = { N: [], R: [], SR: [], SSR: [], UR: [], SP: [] };
+        for (let i=1; i<=2; i++) topRandom.N.push(makeCardName('TOP-组合','N',i));
+        for (let i=1; i<=16; i++) topRandom.N.push(makeCardName('TOP-单人','N',i));
+        for (let i=1; i<=10; i++) topRandom.N.push(makeCardName('TOP-拍立得','N',i));
+        for (let i=1; i<=20; i++) topRandom.N.push(makeCardName('TOP-双人','N',i));
+        let idx=1;
+        for (const m of GROUPS.top) {
+            for (let j=1; j<=3; j++) {
+                topRandom.R.push(`${m}-R-${String(idx++).padStart(2,'0')}`);
+            }
+        }
+        idx=1;
+        for (const m of GROUPS.top) {
+            topRandom.SR.push(`${m}-SR-${String(idx++).padStart(2,'0')}`);
+        }
+        idx=1;
+        for (const m of GROUPS.top) {
+            for (let j=1; j<=3; j++) {
+                topRandom.SR.push(`${m}-拍立得-SR-${String(idx++).padStart(2,'0')}`);
+            }
+        }
+        idx=1;
+        for (const m of GROUPS.top) {
+            topRandom.SSR.push(`${m}-SSR-${String(idx++).padStart(2,'0')}`);
+        }
+        topRandom.UR.push('TOP-团款-UR-01');
+        idx=1;
+        for (const m of GROUPS.top) {
+            topRandom.UR.push(`${m}-UR-${String(idx++).padStart(2,'0')}`);
+        }
+        for (let i=1; i<=6; i++) topRandom.SP.push(`TOP-组合-SP-${String(i).padStart(2,'0')}`);
+        // ★ TOP随机池隐藏卡（团款1张 + 单人5张）
+        topRandom.HIDDEN = [
+            'TOP-团款-隐藏-01',
+            '朱志鑫-隐藏-01',
+            '苏新皓-隐藏-01',
+            '左航-隐藏-01',
+            '张泽禹-隐藏-01',
+            '张极-隐藏-01'
+        ];
+        pools.topRandom = topRandom;
+
+        // ----- TOP 单人池（每人独立）-----
+        const topSingle = {};
+        for (const m of GROUPS.top) {
+            const pool = { N:[], R:[], SR:[], SSR:[], UR:[], SP:[] };
+            for (let i=1; i<=6; i++) pool.N.push(`${m}-N-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=5; i++) pool.R.push(`${m}-R-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=4; i++) pool.SR.push(`${m}-SR-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=1; i++) pool.SSR.push(`${m}-SSR-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=2; i++) pool.UR.push(`${m}-UR-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=2; i++) pool.SP.push(`${m}-SP-${String(i).padStart(2,'0')}`);
+            // ★ TOP单人池隐藏卡（每人1张）
+            pool.HIDDEN = [`${m}-单人隐藏-01`];
+            topSingle[m] = pool;
+        }
+        pools.topSingle = topSingle;
+
+        // ----- 登陆计划随机池 -----
+        const planRandom = { N:[], R:[], SR:[], SSR:[], SP:[] };
+        const planMembers = GROUPS.plan;
+        let idxP=1;
+        for (const m of planMembers) {
+            for (let j=1; j<=3; j++) {
+                planRandom.N.push(`${m}-N-${String(idxP++).padStart(2,'0')}`);
+            }
+        }
+        for (let i=1; i<=14; i++) planRandom.N.push(`登陆计划-双人-N-${String(i).padStart(2,'0')}`);
+        idxP=1;
+        for (const m of planMembers) {
+            for (let j=1; j<=2; j++) {
+                planRandom.R.push(`${m}-拍立得-R-${String(idxP++).padStart(2,'0')}`);
+            }
+        }
+        idxP=1;
+        for (const m of planMembers) {
+            planRandom.R.push(`${m}-R-${String(idxP++).padStart(2,'0')}`);
+        }
+        for (let i=1; i<=7; i++) planRandom.R.push(`登陆计划-双人拍立得-R-${String(i).padStart(2,'0')}`);
+        idxP=1;
+        for (const m of planMembers) {
+            for (let j=1; j<=2; j++) {
+                planRandom.SR.push(`${m}-拍立得-SR-${String(idxP++).padStart(2,'0')}`);
+            }
+        }
+        idxP=1;
+        for (const m of planMembers) {
+            planRandom.SR.push(`${m}-SR-${String(idxP++).padStart(2,'0')}`);
+        }
+        idxP=1;
+        for (const m of planMembers) {
+            planRandom.SSR.push(`${m}-SSR-${String(idxP++).padStart(2,'0')}`);
+        }
+        idxP=1;
+        for (const m of planMembers) {
+            planRandom.SP.push(`${m}-SP-${String(idxP++).padStart(2,'0')}`);
+        }
+        // ★ 登陆计划随机池隐藏卡（每人1张）
+        planRandom.HIDDEN = planMembers.map(m => `${m}-隐藏-01`);
+        pools.planRandom = planRandom;
+
+        // ----- 登陆计划单人池 -----
+        const planSingle = {};
+        for (const m of planMembers) {
+            const pool = { N:[], R:[], SR:[], SSR:[], SP:[] };
+            for (let i=1; i<=5; i++) pool.N.push(`${m}-N-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=4; i++) pool.R.push(`${m}-R-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=4; i++) pool.SR.push(`${m}-SR-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=2; i++) pool.SSR.push(`${m}-SSR-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=1; i++) pool.SP.push(`${m}-SP-${String(i).padStart(2,'0')}`);
+            // ★ 登陆计划单人池隐藏卡（每人1张）
+            pool.HIDDEN = [`${m}-单人隐藏-01`];
+            planSingle[m] = pool;
+        }
+        pools.planSingle = planSingle;
+
+        // ----- TF四代随机池 -----
+        const fourthRandom = { N:[], R:[], SR:[], SSR:[], SP:[] };
+        const fourthMembers = GROUPS.fourth;
+        let idxF=1;
+        for (const m of fourthMembers) {
+            fourthRandom.N.push(`${m}-N-${String(idxF++).padStart(2,'0')}`);
+        }
+        idxF=1;
+        for (const m of fourthMembers) {
+            for (let j=1; j<=2; j++) {
+                fourthRandom.N.push(`${m}-拍立得-N-${String(idxF++).padStart(2,'0')}`);
+            }
+        }
+        idxF=1;
+        for (const m of fourthMembers) {
+            fourthRandom.R.push(`${m}-R-${String(idxF++).padStart(2,'0')}`);
+        }
+        idxF=1;
+        for (const m of fourthMembers) {
+            fourthRandom.R.push(`${m}-拍立得-R-${String(idxF++).padStart(2,'0')}`);
+        }
+        for (let i=1; i<=9; i++) fourthRandom.R.push(`四代-双人-R-${String(i).padStart(2,'0')}`);
+        idxF=1;
+        for (const m of fourthMembers) {
+            fourthRandom.SR.push(`${m}-SR-${String(idxF++).padStart(2,'0')}`);
+        }
+        idxF=1;
+        for (const m of fourthMembers) {
+            fourthRandom.SR.push(`${m}-拍立得-SR-${String(idxF++).padStart(2,'0')}`);
+        }
+        for (let i=1; i<=27; i++) fourthRandom.SR.push(`四代-双人-SR-${String(i).padStart(2,'0')}`);
+        idxF=1;
+        for (const m of fourthMembers) {
+            fourthRandom.SSR.push(`${m}-SSR-${String(idxF++).padStart(2,'0')}`);
+        }
+        idxF=1;
+        for (const m of fourthMembers) {
+            fourthRandom.SSR.push(`${m}-拍立得-SSR-${String(idxF++).padStart(2,'0')}`);
+        }
+        for (let i=1; i<=8; i++) fourthRandom.SSR.push(`四代-双人-SSR-${String(i).padStart(2,'0')}`);
+        idxF=1;
+        for (const m of fourthMembers) {
+            fourthRandom.SP.push(`${m}-SP-${String(idxF++).padStart(2,'0')}`);
+        }
+        for (let i=1; i<=27; i++) fourthRandom.SP.push(`四代-双人拍立得-SP-${String(i).padStart(2,'0')}`);
+        fourthRandom.SP.push('四代-15人合照-SP-01');
+        // ★ 四代随机池隐藏卡（每人1张）
+        fourthRandom.HIDDEN = fourthMembers.map(m => `${m}-隐藏-01`);
+        pools.fourthRandom = fourthRandom;
+
+        // ----- TF四代单人池 -----
+        const fourthSingle = {};
+        for (const m of fourthMembers) {
+            const pool = { N:[], R:[], SR:[], SSR:[], SP:[] };
+            for (let i=1; i<=4; i++) pool.N.push(`${m}-N-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=4; i++) pool.R.push(`${m}-R-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=3; i++) pool.SR.push(`${m}-SR-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=3; i++) pool.SSR.push(`${m}-SSR-${String(i).padStart(2,'0')}`);
+            for (let i=1; i<=1; i++) pool.SP.push(`${m}-SP-${String(i).padStart(2,'0')}`);
+            // ★ 四代单人池隐藏卡（每人1张）
+            pool.HIDDEN = [`${m}-单人隐藏-01`];
+            fourthSingle[m] = pool;
+        }
+        pools.fourthSingle = fourthSingle;
+
+        return pools;
+    }
+    const cardPools = generateCardPools();
+
+    // ============================================================
+    //  3. 概率权重
+    // ============================================================
+    function computeWeights(pool) {
+        const rarities = ['N','R','SR','SSR','UR','SP'];
+        const weights = {};
+        let total = 0;
+        for (const r of rarities) {
+            if (pool[r]) total += pool[r].length;
+        }
+        if (total === 0) return { N: 1 };
+        for (const r of rarities) {
+            weights[r] = (pool[r] ? pool[r].length : 0) / total;
+        }
+        return weights;
+    }
+
+    const FIXED_WEIGHTS = {
+        topSingle:   { N:0.40, R:0.20, SR:0.15, SSR:0.12, UR:0.08, SP:0.05 },
+        planSingle:  { N:0.40, R:0.25, SR:0.15, SSR:0.13, SP:0.07 },
+        fourthSingle:{ N:0.30, R:0.25, SR:0.20, SSR:0.25, SP:0.10 }
+    };
+
+    function getWeights(poolKey) {
+        if (poolKey === 'topRandom') return computeWeights(cardPools.topRandom);
+        if (poolKey === 'planRandom') return computeWeights(cardPools.planRandom);
+        if (poolKey === 'fourthRandom') return computeWeights(cardPools.fourthRandom);
+        if (poolKey === 'topSingle') return FIXED_WEIGHTS.topSingle;
+        if (poolKey === 'planSingle') return FIXED_WEIGHTS.planSingle;
+        if (poolKey === 'fourthSingle') return FIXED_WEIGHTS.fourthSingle;
+        return { N: 1 };
+    }
+
+    // ============================================================
+    //  4. 抽卡逻辑
+    // ============================================================
+    function drawCards(pool, weights, packSize) {
+        const results = [];
+        const rarities = Object.keys(pool).filter(r => Array.isArray(pool[r]) && pool[r].length > 0);
+        if (rarities.length === 0) return results;
+
+        for (let i=0; i<packSize; i++) {
+if (Math.random() < 1/3000) {
+    if (pool.HIDDEN && pool.HIDDEN.length > 0) {
+        const hiddenCard = pool.HIDDEN[Math.floor(Math.random() * pool.HIDDEN.length)];
+        results.push({ name: hiddenCard, rarity: 'HIDDEN' });
+    } else {
+        results.push({ name: '🌟 隐藏款', rarity: 'HIDDEN' });
+    }
+    continue;
+}            
+            let rand = Math.random();
+            let selected = rarities[0];
+            let cum = 0;
+            for (const r of rarities) {
+                cum += weights[r] || 0;
+                if (rand <= cum) { selected = r; break; }
+            }
+            const cards = pool[selected];
+            if (cards && cards.length > 0) {
+                const card = cards[Math.floor(Math.random() * cards.length)];
+                results.push({ name: card, rarity: selected });
+            } else {
+                results.push({ name: '占位卡', rarity: 'N' });
+            }
+        }
+        return results;
+    }
+
+    // ============================================================
+    //  5. 状态管理
+    // ============================================================
+    let stats = {
+        packCount: 0,
+        totalCards: 0,
+        counts: { N:0, R:0, SR:0, SSR:0, UR:0, SP:0, HIDDEN:0 }
+    };
+    let history = [];
+    let currentPool = null;
+    let currentWeights = null;
+    let currentPoolLabel = '';
+
+    // 收集图鉴数据：{ cardName: count }
+    let collection = {};
+
+    // ============================================================
+    //  6. 图片接口（用户可修改）
+    // ============================================================
+function getCardImageUrl(cardName) {
+    return `https://cdn.jsdelivr.net/gh/Muzhicheng16/choukamoniqi111/images/${cardName}.jpg`;
+}
+    // ============================================================
+    //  7. 界面渲染
+    // ============================================================
+    function updateStats() {
+        document.getElementById('packCount').textContent = stats.packCount;
+        document.getElementById('totalCards').textContent = stats.totalCards;
+        document.getElementById('cntN').textContent = stats.counts.N;
+        document.getElementById('cntR').textContent = stats.counts.R;
+        document.getElementById('cntSR').textContent = stats.counts.SR;
+        document.getElementById('cntSSR').textContent = stats.counts.SSR;
+        document.getElementById('cntUR').textContent = stats.counts.UR;
+        document.getElementById('cntSP').textContent = stats.counts.SP;
+        document.getElementById('cntHidden').textContent = stats.counts.HIDDEN;
+    }
+
+// ============================================================
+//  大图查看功能
+// ============================================================
+function openImageViewer(imageUrl, cardName) {
+    const modal = document.getElementById('imageModal');
+    const img = document.getElementById('modalImage');
+    const caption = document.getElementById('modalCaption');
+    img.src = imageUrl;
+    caption.textContent = cardName || '';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageViewer() {
+    document.getElementById('imageModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageViewer();
+    }
+});
+
+    function addHistory(packInfo) {
+        history.push(packInfo);
+        if (history.length > 50) history.shift();
+        const historyDiv = document.getElementById('historyBox');
+        const recent = history.slice(-5).reverse();
+        historyDiv.innerHTML = recent.map(h => `<span class="rarity-tag">${h}</span>`).join(' ');
+    }
+
+    function clearHistory() {
+        history = [];
+        document.getElementById('historyBox').innerHTML = '<span style="color:#555;">已清空</span>';
+        // 同时清空收集数据
+        collection = {};
+        renderCollection();
+    }
+
+    // 视图切换
+    function switchView(view) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        if (view === 'main') {
+            document.getElementById('mainView').classList.add('active');
+        } else if (view === 'draw') {
+            document.getElementById('drawView').classList.add('active');
+        } else if (view === 'collection') {
+            document.getElementById('collectionView').classList.add('active');
+            renderCollection();
+        }
+        // 导航高亮
+        document.querySelectorAll('.nav-bar button').forEach(b => b.classList.remove('active-nav'));
+        if (view === 'main') document.getElementById('navMain').classList.add('active-nav');
+        else if (view === 'collection') document.getElementById('navCollection').classList.add('active-nav');
+        // 如果切换到抽卡界面，导航不高亮
+    }
+
+    function enterDrawView(label, pool, weights) {
+        currentPool = pool;
+        currentWeights = weights;
+        currentPoolLabel = label;
+        document.getElementById('drawTitle').textContent = `🎴 ${label}`;
+        document.getElementById('resultGrid').innerHTML = '<div style="color:#666; padding:40px;">选择抽卡数量，开始抽取</div>';
+        switchView('draw');
+    }
+
+    function backToMain() {
+        switchView('main');
+    }
+
+    // 抽卡执行
+    function drawPack(count) {
+        if (!currentPool) return;
+        const cards = drawCards(currentPool, currentWeights, count);
+        // 更新统计
+        for (const c of cards) {
+            const r = c.rarity;
+            if (r === 'HIDDEN') stats.counts.HIDDEN++;
+            else if (stats.counts.hasOwnProperty(r)) stats.counts[r]++;
+            stats.totalCards++;
+            // 更新收集数据（排除占位卡和隐藏？但隐藏也记录）
+            if (c.name && c.name !== '占位卡') {
+                collection[c.name] = (collection[c.name] || 0) + 1;
+            }
+        }
+        stats.packCount++;
+        updateStats();
+
+        const packInfo = `📦 第${stats.packCount}包 (${currentPoolLabel})：${cards.map(c=>c.name).join('、')}`;
+        addHistory(packInfo);
+
+        // 渲染结果
+        const grid = document.getElementById('resultGrid');
+        grid.innerHTML = '';
+        if (cards.length === 0) {
+            grid.innerHTML = '<div style="color:#666;">没有抽到卡片</div>';
+            return;
+        }
+        for (const c of cards) {
+            const div = document.createElement('div');
+            const rarityClass = c.rarity === 'HIDDEN' ? 'rarity-hidden' : `rarity-${c.rarity}`;
+            div.className = `result-card ${rarityClass}`;
+            const displayName = c.name;
+            const rarityLabel = c.rarity === 'HIDDEN' ? '隐藏' : c.rarity;
+            const imgSrc = getCardImageUrl(displayName);
+            let imageHtml;
+            if (imgSrc) {
+                imageHtml = `<img src="${imgSrc}" alt="${displayName}">`;
+            } else {
+                imageHtml = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#888;">暂无图片</div>`;
+            }
+            div.innerHTML = `
+                <div class="card-image">${imageHtml}</div>
+                <div class="rarity-tag">${rarityLabel}</div>
+                <div class="card-name">${displayName}</div>
+                <div class="congrats">🎉 恭喜你抽到了 ${rarityLabel} 卡！</div>
+            `;
+            grid.appendChild(div);
+        }
+// 显示隐藏卡弹窗
+function showHiddenModal(hiddenCards) {
+    const modal = document.getElementById('hiddenModal');
+    const container = document.getElementById('hiddenCardsContainer');
+    container.innerHTML = ''; // 清空
+
+    if (hiddenCards.length === 0) {
+        modal.style.display = 'none';
+        return;
+    }
+
+    hiddenCards.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'modal-card';
+        const imgSrc = getCardImageUrl(c.name);
+        let imageHtml;
+        if (imgSrc) {
+            imageHtml = `<img src="${imgSrc}" alt="${c.name}">`;
+        } else {
+            imageHtml = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#888;">暂无图片</div>`;
+        }
+        div.innerHTML = `
+            <div class="card-image">${imageHtml}</div>
+            <div class="card-name">${c.name}</div>
+        `;
+        container.appendChild(div);
+    });
+
+    modal.style.display = 'flex';
+}
+
+// 关闭弹窗
+function closeHiddenModal() {
+    document.getElementById('hiddenModal').style.display = 'none';
+}
+    }
+
+    // 渲染图鉴
+    function renderCollection() {
+        const grid = document.getElementById('collectionGrid');
+        grid.innerHTML = '';
+        const entries = Object.entries(collection);
+        if (entries.length === 0) {
+            grid.innerHTML = '<div style="color:#666; padding:40px; width:100%; text-align:center;">还没有抽到任何卡片，快去拆包吧！</div>';
+            return;
+        }
+        // 按卡名排序
+        entries.sort((a, b) => a[0].localeCompare(b[0]));
+        for (const [name, count] of entries) {
+            const div = document.createElement('div');
+            div.className = 'collection-item';
+            // 推断稀有度（从卡名中提取，如果是隐藏款特殊处理）
+            let rarityClass = 'N';
+            if (name === '🌟 隐藏款') {
+                rarityClass = 'hidden';
+            } else {
+                const parts = name.split('-');
+                if (parts.length >= 2) {
+                    const r = parts[parts.length - 2]; // 例如 "朱志鑫-N-01" -> 倒数第二个是 "N"
+                    if (['N','R','SR','SSR','UR','SP'].includes(r)) rarityClass = r;
+                }
+            }
+            div.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue(`--rarity-${rarityClass}`) || '#3a3a5a';
+            // 图片
+            const imgSrc = getCardImageUrl(name);
+            let imageHtml;
+            if (imgSrc) {
+          imageHtml = `<img src="${imgSrc}" alt="${name}" style="cursor:pointer;" onclick="openImageViewer('${imgSrc}', '${name}')">`;
+            } else {
+                imageHtml = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#888;">暂无图片</div>`;
+            }
+            div.innerHTML = `
+                <div class="card-image">${imageHtml}</div>
+                <div class="card-name">${name}</div>
+                <div class="count-badge">${count}</div>
+            `;
+            grid.appendChild(div);
+        }
+    // 检查是否有隐藏卡，如果有则弹出弹窗
+    const hiddenCards = cards.filter(c => c.rarity === 'HIDDEN');
+    if (hiddenCards.length > 0) {
+        showHiddenModal(hiddenCards);
+    }
+    }
+
+    // ============================================================
+    //  8. 创建主界面按钮
+    // ============================================================
+    function createMemberButtons() {
+        const topDiv = document.getElementById('topMembers');
+        const planDiv = document.getElementById('planMembers');
+        const fourthDiv = document.getElementById('fourthMembers');
+
+        for (const m of GROUPS.top) {
+            const btn = document.createElement('button');
+            btn.className = 'member-btn';
+            btn.textContent = m;
+            btn.addEventListener('click', () => {
+                const pool = cardPools.topSingle[m];
+                const weights = getWeights('topSingle');
+                enterDrawView(`${m} 单人池`, pool, weights);
+            });
+            topDiv.appendChild(btn);
+        }
+
+        for (const m of GROUPS.plan) {
+            const btn = document.createElement('button');
+            btn.className = 'member-btn';
+            btn.textContent = m;
+            btn.addEventListener('click', () => {
+                const pool = cardPools.planSingle[m];
+                const weights = getWeights('planSingle');
+                enterDrawView(`${m} 单人池`, pool, weights);
+            });
+            planDiv.appendChild(btn);
+        }
+
+        for (const m of GROUPS.fourth) {
+            const btn = document.createElement('button');
+            btn.className = 'member-btn';
+            btn.textContent = m;
+            btn.addEventListener('click', () => {
+                const pool = cardPools.fourthSingle[m];
+                const weights = getWeights('fourthSingle');
+                enterDrawView(`${m} 单人池`, pool, weights);
+            });
+            fourthDiv.appendChild(btn);
+        }
+    }
+
+    document.querySelectorAll('.random-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const poolKey = this.dataset.pool;
+            let pool, weights, label;
+            if (poolKey === 'topRandom') {
+                pool = cardPools.topRandom;
+                weights = getWeights('topRandom');
+                label = 'TOP随机池';
+            } else if (poolKey === 'planRandom') {
+                pool = cardPools.planRandom;
+                weights = getWeights('planRandom');
+                label = '登陆计划随机池';
+            } else if (poolKey === 'fourthRandom') {
+                pool = cardPools.fourthRandom;
+                weights = getWeights('fourthRandom');
+                label = 'TF家族随机池';
+            } else return;
+            enterDrawView(label, pool, weights);
+        });
+    });
+
+    // ============================================================
+    //  9. 初始化
+    // ============================================================
+    createMemberButtons();
+    updateStats();
+
+    // 清空历史按钮
+    const historyBox = document.getElementById('historyBox');
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'clear-btn';
+    clearBtn.textContent = '清空记录';
+    clearBtn.addEventListener('click', clearHistory);
+    historyBox.parentElement.insertBefore(clearBtn, historyBox);
+
+    // 默认主界面
+    switchView('main');
+
+    console.log('💡 插入图片：修改 getCardImageUrl 函数');
+    console.log('📌 卡名格式：在 generateCardPools 中调整');
+</script>
+<!-- ============ 隐藏卡弹窗 ============ -->
+<div id="hiddenModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; overflow-y:auto; padding:20px;">
+    <div style="background:#1c1c38; border-radius:20px; max-width:500px; width:100%; padding:20px; position:relative; border:3px solid #ffd700; box-shadow:0 0 40px rgba(255,215,0,0.3);">
+        <button onclick="closeHiddenModal()" style="position:absolute; top:10px; right:15px; background:transparent; border:none; color:#fff; font-size:28px; cursor:pointer; font-weight:bold;">✕</button>
+        <h2 style="color:#ffd700; text-align:center; margin-top:0;">🎉 恭喜你中了隐藏卡！</h2>
+        <div id="hiddenCardsContainer" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; max-height:60vh; overflow-y:auto; padding:10px 0;">
+            <!-- 这里由 JavaScript 动态填充 -->
+        </div>
+    </div>
+</div>
+<!-- ============ 图片查看大图模态框 ============ -->
+<div id="imageModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; justify-content:center; align-items:center; cursor:pointer;" onclick="closeImageViewer()">
+    <div style="max-width:90%; max-height:90%; display:flex; justify-content:center; align-items:center;">
+        <img id="modalImage" src="" alt="卡片大图" style="max-width:100%; max-height:100%; border-radius:12px; box-shadow:0 0 40px rgba(255,215,0,0.3);">
+    </div>
+    <button onclick="closeImageViewer(); event.stopPropagation();" style="position:absolute; top:20px; right:30px; background:transparent; border:none; color:#fff; font-size:40px; cursor:pointer; font-weight:bold; text-shadow:0 0 10px rgba(0,0,0,0.8);">✕</button>
+    <div style="position:absolute; bottom:30px; left:0; width:100%; text-align:center; color:#fff; font-size:16px; text-shadow:0 0 10px rgba(0,0,0,0.8); pointer-events:none;" id="modalCaption"></div>
+</div>
+</body>
+</html>
