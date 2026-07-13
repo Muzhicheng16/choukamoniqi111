@@ -353,16 +353,6 @@
             .draw-header h2 { font-size: 1.2rem; }
             .collection-item { width: 90px; }
         }
-        @media (max-width: 600px) {
-            .container { padding: 16px 12px; }
-            h1 { font-size: 1.6rem; }
-            .result-card { width: 160px; padding: 10px; }
-            .result-card .card-name { font-size: 0.9rem; }
-            .result-card .congrats { font-size: 0.75rem; }
-            .draw-header h2 { font-size: 1.2rem; }
-            .collection-item { width: 90px; }
-        }
-        /* 👇 在这里插入新增样式 */
         /* 隐藏卡弹窗滚动条美化 */
         #hiddenCardsContainer::-webkit-scrollbar { width: 5px; }
         #hiddenCardsContainer::-webkit-scrollbar-track { background: #0a0a18; }
@@ -400,15 +390,14 @@
             font-weight: bold;
             font-size: 0.9rem;
         }
-/* 图片查看大图模态框 - 淡入动画 */
-#imageModal {
-    animation: fadeIn 0.3s ease;
-}
-@keyframes fadeIn {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-}
-    </style>
+        /* 图片查看大图模态框 - 淡入动画 */
+        #imageModal {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -493,11 +482,11 @@
         💡 图片配置：修改 <code>getCardImageUrl</code> 函数 · 卡名修改：<code>generateCardPools</code>
     </div>
 
-        <!-- 免责声明 -->
-        <div style="position:fixed; bottom:10px; right:15px; color:#666; font-size:12px; text-align:right; line-height:1.6; opacity:0.7; pointer-events:none; z-index:999;">
-            模拟抽卡，仅供娱乐<br>
-            图片源于网络，侵权可删，严禁商用
-        </div>
+    <!-- 免责声明 -->
+    <div style="position:fixed; bottom:10px; right:15px; color:#666; font-size:12px; text-align:right; line-height:1.6; opacity:0.7; pointer-events:none; z-index:999;">
+        模拟抽卡，仅供娱乐<br>
+        图片源于网络，侵权可删，严禁商用
+    </div>
 </div>
 
 <script>
@@ -753,15 +742,15 @@
         if (rarities.length === 0) return results;
 
         for (let i=0; i<packSize; i++) {
-if (Math.random() < 1/3000) {
-    if (pool.HIDDEN && pool.HIDDEN.length > 0) {
-        const hiddenCard = pool.HIDDEN[Math.floor(Math.random() * pool.HIDDEN.length)];
-        results.push({ name: hiddenCard, rarity: 'HIDDEN' });
-    } else {
-        results.push({ name: '🌟 隐藏款', rarity: 'HIDDEN' });
-    }
-    continue;
-}            
+            if (Math.random() < 1/3000) {
+                if (pool.HIDDEN && pool.HIDDEN.length > 0) {
+                    const hiddenCard = pool.HIDDEN[Math.floor(Math.random() * pool.HIDDEN.length)];
+                    results.push({ name: hiddenCard, rarity: 'HIDDEN' });
+                } else {
+                    results.push({ name: '🌟 隐藏款', rarity: 'HIDDEN' });
+                }
+                continue;
+            }
             let rand = Math.random();
             let selected = rarities[0];
             let cum = 0;
@@ -799,9 +788,10 @@ if (Math.random() < 1/3000) {
     // ============================================================
     //  6. 图片接口（用户可修改）
     // ============================================================
-function getCardImageUrl(cardName) {
-    return `https://cdn.jsdelivr.net/gh/Muzhicheng16/choukamoniqi111/images/${cardName}.jpg`;
-}
+    function getCardImageUrl(cardName) {
+        return `https://cdn.jsdelivr.net/gh/Muzhicheng16/choukamoniqi111/images/${cardName}.jpg`;
+    }
+
     // ============================================================
     //  7. 界面渲染
     // ============================================================
@@ -817,29 +807,63 @@ function getCardImageUrl(cardName) {
         document.getElementById('cntHidden').textContent = stats.counts.HIDDEN;
     }
 
-// ============================================================
-//  大图查看功能
-// ============================================================
-function openImageViewer(imageUrl, cardName) {
-    const modal = document.getElementById('imageModal');
-    const img = document.getElementById('modalImage');
-    const caption = document.getElementById('modalCaption');
-    img.src = imageUrl;
-    caption.textContent = cardName || '';
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function closeImageViewer() {
-    document.getElementById('imageModal').style.display = 'none';
-    document.body.style.overflow = '';
-}
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeImageViewer();
+    // ============================================================
+    //  大图查看功能
+    // ============================================================
+    function openImageViewer(imageUrl, cardName) {
+        const modal = document.getElementById('imageModal');
+        const img = document.getElementById('modalImage');
+        const caption = document.getElementById('modalCaption');
+        img.src = imageUrl;
+        caption.textContent = cardName || '';
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
     }
-});
+
+    function closeImageViewer() {
+        document.getElementById('imageModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageViewer();
+        }
+    });
+
+    // ============================================================
+    //  隐藏卡弹窗功能（修复后，放在全局作用域）
+    // ============================================================
+    function showHiddenModal(hiddenCards) {
+        const modal = document.getElementById('hiddenModal');
+        const container = document.getElementById('hiddenCardsContainer');
+        container.innerHTML = '';
+        if (hiddenCards.length === 0) {
+            modal.style.display = 'none';
+            return;
+        }
+        hiddenCards.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'modal-card';
+            const imgSrc = getCardImageUrl(c.name);
+            let imageHtml;
+            if (imgSrc) {
+                imageHtml = `<img src="${imgSrc}" alt="${c.name}">`;
+            } else {
+                imageHtml = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#888;">暂无图片</div>`;
+            }
+            div.innerHTML = `
+                <div class="card-image">${imageHtml}</div>
+                <div class="card-name">${c.name}</div>
+            `;
+            container.appendChild(div);
+        });
+        modal.style.display = 'flex';
+    }
+
+    function closeHiddenModal() {
+        document.getElementById('hiddenModal').style.display = 'none';
+    }
 
     function addHistory(packInfo) {
         history.push(packInfo);
@@ -852,7 +876,6 @@ document.addEventListener('keydown', function(e) {
     function clearHistory() {
         history = [];
         document.getElementById('historyBox').innerHTML = '<span style="color:#555;">已清空</span>';
-        // 同时清空收集数据
         collection = {};
         renderCollection();
     }
@@ -868,11 +891,9 @@ document.addEventListener('keydown', function(e) {
             document.getElementById('collectionView').classList.add('active');
             renderCollection();
         }
-        // 导航高亮
         document.querySelectorAll('.nav-bar button').forEach(b => b.classList.remove('active-nav'));
         if (view === 'main') document.getElementById('navMain').classList.add('active-nav');
         else if (view === 'collection') document.getElementById('navCollection').classList.add('active-nav');
-        // 如果切换到抽卡界面，导航不高亮
     }
 
     function enterDrawView(label, pool, weights) {
@@ -898,7 +919,6 @@ document.addEventListener('keydown', function(e) {
             if (r === 'HIDDEN') stats.counts.HIDDEN++;
             else if (stats.counts.hasOwnProperty(r)) stats.counts[r]++;
             stats.totalCards++;
-            // 更新收集数据（排除占位卡和隐藏？但隐藏也记录）
             if (c.name && c.name !== '占位卡') {
                 collection[c.name] = (collection[c.name] || 0) + 1;
             }
@@ -937,41 +957,12 @@ document.addEventListener('keydown', function(e) {
             `;
             grid.appendChild(div);
         }
-// 显示隐藏卡弹窗
-function showHiddenModal(hiddenCards) {
-    const modal = document.getElementById('hiddenModal');
-    const container = document.getElementById('hiddenCardsContainer');
-    container.innerHTML = ''; // 清空
 
-    if (hiddenCards.length === 0) {
-        modal.style.display = 'none';
-        return;
-    }
-
-    hiddenCards.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'modal-card';
-        const imgSrc = getCardImageUrl(c.name);
-        let imageHtml;
-        if (imgSrc) {
-            imageHtml = `<img src="${imgSrc}" alt="${c.name}">`;
-        } else {
-            imageHtml = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#888;">暂无图片</div>`;
+        // 👇 在这里调用隐藏弹窗（在循环外面）
+        const hiddenCards = cards.filter(c => c.rarity === 'HIDDEN');
+        if (hiddenCards.length > 0) {
+            showHiddenModal(hiddenCards);
         }
-        div.innerHTML = `
-            <div class="card-image">${imageHtml}</div>
-            <div class="card-name">${c.name}</div>
-        `;
-        container.appendChild(div);
-    });
-
-    modal.style.display = 'flex';
-}
-
-// 关闭弹窗
-function closeHiddenModal() {
-    document.getElementById('hiddenModal').style.display = 'none';
-}
     }
 
     // 渲染图鉴
@@ -983,28 +974,25 @@ function closeHiddenModal() {
             grid.innerHTML = '<div style="color:#666; padding:40px; width:100%; text-align:center;">还没有抽到任何卡片，快去拆包吧！</div>';
             return;
         }
-        // 按卡名排序
         entries.sort((a, b) => a[0].localeCompare(b[0]));
         for (const [name, count] of entries) {
             const div = document.createElement('div');
             div.className = 'collection-item';
-            // 推断稀有度（从卡名中提取，如果是隐藏款特殊处理）
             let rarityClass = 'N';
             if (name === '🌟 隐藏款') {
                 rarityClass = 'hidden';
             } else {
                 const parts = name.split('-');
                 if (parts.length >= 2) {
-                    const r = parts[parts.length - 2]; // 例如 "朱志鑫-N-01" -> 倒数第二个是 "N"
+                    const r = parts[parts.length - 2];
                     if (['N','R','SR','SSR','UR','SP'].includes(r)) rarityClass = r;
                 }
             }
             div.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue(`--rarity-${rarityClass}`) || '#3a3a5a';
-            // 图片
             const imgSrc = getCardImageUrl(name);
             let imageHtml;
             if (imgSrc) {
-          imageHtml = `<img src="${imgSrc}" alt="${name}" style="cursor:pointer;" onclick="openImageViewer('${imgSrc}', '${name}')">`;
+                imageHtml = `<img src="${imgSrc}" alt="${name}" style="cursor:pointer;" onclick="openImageViewer('${imgSrc}', '${name}')">`;
             } else {
                 imageHtml = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#888;">暂无图片</div>`;
             }
@@ -1015,11 +1003,6 @@ function closeHiddenModal() {
             `;
             grid.appendChild(div);
         }
-    // 检查是否有隐藏卡，如果有则弹出弹窗
-    const hiddenCards = cards.filter(c => c.rarity === 'HIDDEN');
-    if (hiddenCards.length > 0) {
-        showHiddenModal(hiddenCards);
-    }
     }
 
     // ============================================================
@@ -1108,16 +1091,16 @@ function closeHiddenModal() {
     console.log('💡 插入图片：修改 getCardImageUrl 函数');
     console.log('📌 卡名格式：在 generateCardPools 中调整');
 </script>
+
 <!-- ============ 隐藏卡弹窗 ============ -->
 <div id="hiddenModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; overflow-y:auto; padding:20px;">
     <div style="background:#1c1c38; border-radius:20px; max-width:500px; width:100%; padding:20px; position:relative; border:3px solid #ffd700; box-shadow:0 0 40px rgba(255,215,0,0.3);">
         <button onclick="closeHiddenModal()" style="position:absolute; top:10px; right:15px; background:transparent; border:none; color:#fff; font-size:28px; cursor:pointer; font-weight:bold;">✕</button>
         <h2 style="color:#ffd700; text-align:center; margin-top:0;">🎉 恭喜你中了隐藏卡！</h2>
-        <div id="hiddenCardsContainer" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; max-height:60vh; overflow-y:auto; padding:10px 0;">
-            <!-- 这里由 JavaScript 动态填充 -->
-        </div>
+        <div id="hiddenCardsContainer" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center; max-height:60vh; overflow-y:auto; padding:10px 0;"></div>
     </div>
 </div>
+
 <!-- ============ 图片查看大图模态框 ============ -->
 <div id="imageModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; justify-content:center; align-items:center; cursor:pointer;" onclick="closeImageViewer()">
     <div style="max-width:90%; max-height:90%; display:flex; justify-content:center; align-items:center;">
